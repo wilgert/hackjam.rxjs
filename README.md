@@ -33,6 +33,7 @@ setTimeout(() => {
 #### Output:
 ![](https://i.imgur.com/pK59iKM.gif)
 ![](http://i.imgur.com/3nc1QDL.png)
+
 That's right, streams are out of sync 😑. When you re-subscribe you get the values from the begining instead of getting the next value.
 
 ### Solution
