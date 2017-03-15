@@ -4,36 +4,99 @@
 //  and listen the value emitted  by the producer
 
 export function Observable(producer) {
-  this._producer = producer;
-  this.subscribe = (next, error, complete) => {
-    const observer = (typeof next !== 'function')
-      ? next
-      : {next, error, complete};
-    return this._producer(observer);
-  }
+    this._producer = producer;
+    this.subscribe = (next, error, complete) => {
+        const observer = (typeof next !== 'function')
+            ? next
+            : {next, error, complete};
+        return this._producer(observer);
+    };
+    this.share = ()=>{
+      const subject = new Subject();
+      this.subscribe(subject);
+      return subject;
+    };
 }
 
 
 Observable.interval = (milliseconds) => {
-  const producer = (observer) => {
-    observer.next(0);
-    let c = 1;
-    const id = setInterval(() => {
-      observer.next(c++);
-    }, milliseconds);
-    return () => clearInterval(id); 
-  }
-  return new Observable(producer);
+    const producer = (observer) => {
+        observer.next(0);
+        let c = 1;
+        const id = setInterval(() => {
+            observer.next(c++);
+        }, milliseconds);
+        return () => clearInterval(id);
+    };
+    return new Observable(producer);
 }
 
-export const Subject = () => ({
 
-});
+export class Subject{
+    observers = [];
 
-export const BehaviorSubject = () => ({
+    subscribe(observer) {
+        this.observers.push(observer);
+    }
 
-});
+    next(val){
+        this.observers.forEach((observer) => {
+            this.callNext(observer, val);
+        });
+    }
 
-export const ReplaySubject = () => ({
+    error(){
 
-});
+    }
+
+    complete(){
+
+    }
+
+    callNext(observer, val){
+        if(typeof observer === 'function'){
+            observer(val);
+        }else{
+            observer.next && observer.next(val);
+        }
+    }
+}
+
+export class BehaviorSubject extends Subject {
+    lastValue;
+
+    subscribe(observer){
+        super.subscribe(observer);
+        if(this.lastValue!==undefined){
+            this.callNext(observer, this.lastValue)
+        }
+    }
+
+    next(val){
+        super.next(val);
+
+        this.lastValue = val;
+    }
+}
+
+export class ReplaySubject extends Subject {
+    previousValues = [];
+
+    constructor(maxNumberOfValues){
+       super();
+       this.maxNumberOfValues = maxNumberOfValues;
+    }
+
+    next(val){
+        super.next(val);
+        this.previousValues.push(val);
+        this.previousValues = this.previousValues.slice(-this.maxNumberOfValues)
+    }
+
+    subscribe(observer){
+        super.subscribe(observer);
+        this.previousValues.forEach(val => {
+            this.callNext(observer, val);
+        });
+    }
+}
