@@ -55,6 +55,7 @@ setTimeout(() => {
 #### Output: 
 ![](https://i.imgur.com/rJj6J6Z.gif)
 ![](http://i.imgur.com/VTLmQJQ.png)
+
 And now our streams are synced !
 
 ## What we want you to build:
